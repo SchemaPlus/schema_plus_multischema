@@ -1,0 +1,11 @@
+/coverage
+/tmp
+/pkg
+/Gemfile.local
+
+*.lock
+*.log
+*.sqlite3
+!gemfiles/**/*.sqlite3
+.DS_Store
+*/.DS_Store

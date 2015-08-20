@@ -1,0 +1,6 @@
+ruby:
+    - 2.1.5
+activerecord:
+    - 4.2
+db:
+    - postgresql
