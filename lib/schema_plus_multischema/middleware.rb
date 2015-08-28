@@ -2,11 +2,10 @@ module SchemaPlusMultischema
   module Middleware
 
     module PostgreSQL
+      DEFAULT_SCHEMA_SEARCH_PATH = %q{"$user",public}
 
       module Schema
         module Tables
-
-          DEFAULT_SCHEMA_SEARCH_PATH = %q{"$user",public}
 
           def implement(env)
             use_prefix = (env.connection.schema_search_path != DEFAULT_SCHEMA_SEARCH_PATH)
@@ -22,6 +21,21 @@ module SchemaPlusMultischema
                 row['tablename']
               end
             }
+          end
+
+        end
+      end
+
+      module Dumper
+        module Initial
+
+          def after(env)
+            if (path = env.connection.schema_search_path) != DEFAULT_SCHEMA_SEARCH_PATH
+              path.split(',').each do |name|
+                env.initial << %Q{  connection.execute "CREATE SCHEMA IF NOT EXISTS #{name}"}
+              end
+              env.initial << %Q{  connection.schema_search_path = #{path.inspect}}
+            end
           end
 
         end
