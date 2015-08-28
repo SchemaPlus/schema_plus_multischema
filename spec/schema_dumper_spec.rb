@@ -2,29 +2,27 @@ require 'spec_helper'
 
 describe 'Schema dump' do
   before(:each) do
-    ActiveRecord::Migration.suppress_messages do
+    ActiveRecord::Schema.define do
+      connection.schema_search_path='first,second'
+      connection.tables.each do |table| drop_table table, force: :cascade end
 
-      ActiveRecord::Schema.define do
-        connection.schema_search_path='first,second'
-        connection.tables.each do |table| drop_table table, force: :cascade end
-
-        execute <<-SQL
+      execute <<-SQL
           CREATE SCHEMA IF NOT EXISTS first;
           CREATE TABLE first.dogs
           (
             id INTEGER PRIMARY KEY
           );
-        SQL
+      SQL
 
-        execute <<-SQL
+      execute <<-SQL
           CREATE SCHEMA IF NOT EXISTS second;
           CREATE TABLE second.dogs
           (
             id INTEGER PRIMARY KEY
           );
-        SQL
+      SQL
 
-        execute <<-SQL
+      execute <<-SQL
           CREATE SCHEMA IF NOT EXISTS second;
           CREATE TABLE first.owners
           (
@@ -35,16 +33,15 @@ describe 'Schema dump' do
 
           ALTER TABLE ONLY first.owners
               ADD CONSTRAINT fk_first_owners_dog_id FOREIGN KEY (dog_id) REFERENCES second.dogs(id) ON DELETE CASCADE;
-        SQL
+      SQL
 
-        execute <<-SQL
+      execute <<-SQL
           CREATE SCHEMA IF NOT EXISTS second;
           CREATE TABLE no_schema_prefix
           (
             id INTEGER PRIMARY KEY
           );
-        SQL
-      end
+      SQL
     end
   end
 

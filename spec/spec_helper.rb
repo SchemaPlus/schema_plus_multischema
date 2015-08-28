@@ -17,6 +17,11 @@ Dir[File.dirname(__FILE__) + "/support/**/*.rb"].each {|f| require f}
 
 RSpec.configure do |config|
   config.warnings = true
+  config.around(:each) do |example|
+    ActiveRecord::Migration.suppress_messages do
+      example.run
+    end
+  end
 end
 
 
