@@ -1,69 +1,59 @@
 require 'spec_helper'
 
 describe 'Schema dump' do
+  let(:connection) { ActiveRecord::Base.connection }
+
   around(:each) do |example|
     with_schemas %w[first second] do
       example.run
     end
   end
 
-  before(:each) do
-    ActiveRecord::Schema.define do
-
-      execute <<-SQL
-          CREATE TABLE first.dogs
-          (
-            id INTEGER PRIMARY KEY
-          );
-      SQL
-
-      execute <<-SQL
-          CREATE TABLE second.dogs
-          (
-            id INTEGER PRIMARY KEY
-          );
-      SQL
-
-      execute <<-SQL
-          CREATE TABLE first.owners
-          (
-            id INTEGER PRIMARY KEY,
-            dog_id INTEGER NOT NULL
-          );
-          CREATE INDEX fk__first_owners_second_dogs ON first.owners USING btree (dog_id);
-
-          ALTER TABLE ONLY first.owners
-              ADD CONSTRAINT fk_first_owners_dog_id FOREIGN KEY (dog_id) REFERENCES second.dogs(id) ON DELETE CASCADE;
-      SQL
-
-      execute <<-SQL
-          CREATE TABLE no_schema_prefix
-          (
-            id INTEGER PRIMARY KEY
-          );
-      SQL
+  context 'with a table that is created without a schema prefix' do
+    before(:each) do
+      schema_definitions do
+        create_table 'no_schema_prefix'
+      end
+    end
+    it 'includes schema prefix in dump' do
+      expect(dump_schema).to include('create_table "first.no_schema_prefix"')
     end
   end
 
-  def dump_schema(opts={})
+  context 'tables with same name in different schemas' do
+    before(:each) do 
+      schema_definitions do
+        create_table 'first.dogs'
+        create_table 'second.dogs'
+      end
+    end
+
+    it 'includes both tables with schema prefixes' do
+      expect(dump_schema).to include('create_table "first.dogs"')
+      expect(dump_schema).to include('create_table "second.dogs"')
+    end
+
+    context 'with schema_plus_foreign_keys support' do
+      before(:each) do
+        schema_definitions do
+          create_table 'first.owners' do |t|
+            t.integer :dog_id, null: false, references: 'second.dogs'
+          end
+        end
+      end
+
+      it 'includes foreign key references with schema prefixes' do
+        expect(dump_schema).to include('foreign_key: {references: "second.dogs", name: "fk_first_owners_dog_id"')
+      end
+    end
+  end
+
+  private
+
+  def dump_schema
     stream = StringIO.new
-    ActiveRecord::SchemaDumper.ignore_tables = Array.wrap(opts[:ignore]) || []
     ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)
     stream.string
   end
 
-  it 'should dump tables which are created without schema prefix' do
-    expect(dump_schema).to include('create_table "first.no_schema_prefix"')
-  end
-
-  it 'should dump tables with same names from different schemas' do
-    expect(dump_schema).to include('create_table "first.dogs"')
-    expect(dump_schema).to include('create_table "second.dogs"')
-  end
-
-  context 'when foreign key schema plus gem required' do
-    it 'should dump foreign key references with schema names' do
-      expect(dump_schema).to include('foreign_key: {references: "second.dogs", name: "fk_first_owners_dog_id"')
-    end
-  end
 end
