@@ -1,13 +1,16 @@
 require 'spec_helper'
 
 describe 'Schema dump' do
+  around(:each) do |example|
+    with_schemas %w[first second] do
+      example.run
+    end
+  end
+
   before(:each) do
     ActiveRecord::Schema.define do
-      connection.schema_search_path='first,second'
-      connection.tables.each do |table| drop_table table, force: :cascade end
 
       execute <<-SQL
-          CREATE SCHEMA IF NOT EXISTS first;
           CREATE TABLE first.dogs
           (
             id INTEGER PRIMARY KEY
@@ -15,7 +18,6 @@ describe 'Schema dump' do
       SQL
 
       execute <<-SQL
-          CREATE SCHEMA IF NOT EXISTS second;
           CREATE TABLE second.dogs
           (
             id INTEGER PRIMARY KEY
@@ -23,7 +25,6 @@ describe 'Schema dump' do
       SQL
 
       execute <<-SQL
-          CREATE SCHEMA IF NOT EXISTS second;
           CREATE TABLE first.owners
           (
             id INTEGER PRIMARY KEY,
@@ -36,7 +37,6 @@ describe 'Schema dump' do
       SQL
 
       execute <<-SQL
-          CREATE SCHEMA IF NOT EXISTS second;
           CREATE TABLE no_schema_prefix
           (
             id INTEGER PRIMARY KEY

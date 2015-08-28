@@ -20,6 +20,7 @@ RSpec.configure do |config|
   config.around(:each) do |example|
     ActiveRecord::Migration.suppress_messages do
       example.run
+      drop_all_tables
     end
   end
 end
