@@ -49,7 +49,7 @@ Your PostgreSQL database might have multiple schemas, that provide namespaces fo
     connection.execute "CREATE SCHEMA first"
     connection.execute "CREATE SCHEMA second"
 
-ActiveRecord's PostgreSQL connection adapter lets you set PostgreSQL's search_path to choose which schemas to look at:
+ActiveRecord's PostgreSQL connection adapter lets you [set PostgreSQL's search_path](http://apidock.com/rails/ActiveRecord/ConnectionAdapters/PostgreSQLAdapter/schema_search_path%3D) to choose which schemas to look at:
 
     connection.schema_search_path = "first,second"
 
@@ -58,15 +58,15 @@ And ActiveRecord let you use schema names in migrations, such as
     create_table 'first.my_table' do ...
     create_table 'second.my_table' do ...
 
-But without SchemaPlusMultishema, ActiveRecord's introspection doesn't handle them properly.  It *does* find all tables that are in the current search path, but it *doesn't* prefix them with their schema names. The schema dump `schema/dump.rb` doesn't take into account the schemas at all and the dump will be invalid. Futhermore, if there are tables with the same name in different schemas, only 1 of the tables will be dumped.
+But without SchemaPlusMultischema, ActiveRecord's introspection doesn't handle them properly.  It *does* find all tables that are in the current search path, but it *doesn't* prefix them with their schema names. The schema dump `schema/dump.rb` doesn't take into account the schemas at all and the dump will be invalid. Futhermore, if there are tables with the same name in different schemas, only 1 of the tables will be dumped.
 
 ## Features
 
-With SchemaPlusMultischema installed, make sure to set your [schema search path to use your schemas](http://apidock.com/rails/ActiveRecord/ConnectionAdapters/PostgreSQLAdapter/schema_search_path%3D). SchemaPlusMultischema features only work if the current search path is different from PostgreSQL's default (```"$user",public```). If schema search path is PostgreSQL's default, then behavior is the same as pure ActiveRecord.
+With SchemaPlusMultischema installed, it activates its features whenever your schema search path differs from PostgreSQL's default (```"$user",public```). If schema search path is PostgreSQL's default, then SchemaPlusMultischema stays out of the way and the behavior is the same as pure ActiveRecord.
 
 ### `connection.tables`
 
-SchemaPlusMultischema modifies the output of ActiveRecord's `connection.tables` method.
+The output of ActiveRecord's `connection.tables` method will have table name prefixed with its schema.  E.g.
 
     connection.tables  # => ["first.my_table", "second.my_table"]
 
@@ -81,7 +81,7 @@ The schema dump (`db/schema.rb`) will include the schema setup, and the table de
         create_table "first.my_table" do ...
         create_table "second.my_table" do ...
 
-Foreign key associations will also contain table definitions with prefixed schemas. E.g.
+If you're using the [schema_plus_foreign_keys](https://github.com/SchemaPlus/schema_plus_foreign_keys) gem, foreign key associations will also contain table definitions with prefixed schemas. E.g.
 
         create_table "first.my_table" do
           ...
