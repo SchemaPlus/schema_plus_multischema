@@ -26,4 +26,5 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency "schema_dev", "~> 3.5", ">= 3.5.1"
   gem.add_development_dependency "simplecov"
   gem.add_development_dependency "simplecov-gem-profile"
+  gem.add_development_dependency "schema_plus_foreign_keys"
 end

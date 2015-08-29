@@ -1,11 +1,17 @@
 [![Gem Version](https://badge.fury.io/rb/schema_plus_multischema.svg)](http://badge.fury.io/rb/schema_plus_multischema)
 [![Build Status](https://secure.travis-ci.org/SchemaPlus/schema_plus_multischema.svg)](http://travis-ci.org/SchemaPlus/schema_plus_multischema)
 [![Coverage Status](https://img.shields.io/coveralls/SchemaPlus/schema_plus_multischema.svg)](https://coveralls.io/r/SchemaPlus/schema_plus_multischema)
-[![Dependency Status](https://gemnasium.com/lomba/schema_plus_multischema.svg)](https://gemnasium.com/SchemaPlus/schema_plus_multischema)
+
 
 # SchemaPlusMultischema
 
-Schema plus multischema is a schema plus extension for postgresql that adds support for multiple schemas for schema dumps.
+SchemaPlusMultischema adds support for using multiple schemas with ActiveRecord.  The new features are currently:
+
+* `ActiveRecord::Connection#tables` returns each table name in the form `"schema.table"` if there if the current search path isn't the DBMS default.
+
+* Schema dump includes the schema definitions and search path and creates  each table in its appropriate schema, if the current search path isn't the DBMS default.
+
+Support is currently limited to Postgresql.  See details below.
 
 SchemaPlusMultischema is part of the [SchemaPlus](https://github.com/SchemaPlus/) family of Ruby on Rails ActiveRecord extension gems.
 
@@ -32,43 +38,50 @@ SchemaPlusMultischema is tested on:
 
 <!-- SCHEMA_DEV: MATRIX - end -->
 
-## Usage
+SchemaPlusMultischema should be a no-op if used with sqlite3 or mysql.
 
-Using schema plus multiple schemas is easy - simply require it before you do a schema dump. If everything works, then the schema dump should include schema names before table names
+## Background
 
-For example, lets say we have a table ```wallets``` in schema ```private``` and table ```users``` in schema ```public```. Each user has 1 wallet. Without this gem, the schemadump would look like this:
+Your PostgreSQL database might have multiple schemas, that provide namespaces for tables.  For example, you could define:
 
-```
-create_table 'wallets' do
-end
+    connection.execute "CREATE SCHEMA first"
+    connection.execute "CREATE SCHEMA second"
 
-create_table 'users' do |t|
-  t.integer :wallet_id
-end
-```
+ActiveRecord's PostgreSQL connection adapter lets you set PostgreSQL's search_path to choose which schemas to look at:
 
-With this gem, the schemadump will look like this:
+    connection.schema_search_path = "first,second"
+    
+And ActiveRecord let you use schema names in migrations, such as
 
-```
-create_table 'private.wallets' do
-end
+    create_table 'first.my_table' do ...
+    create_table 'second.my_table' do ...
+    
+But without SchemaPlusMultishema, ActiveRecord's introspection doesn't handle them properly.  It *does* find all tables that are in the current search path, but it *doesn't* prefix them with their schema names.  And the schema dump `schema/dump.rb` doesn't take into account the schemas at all, so it's invalid. 
 
-create_table 'public.users' do |t|
-  t.integer :wallet_id, null: false
-end
+## Features
 
-```
+With SchemaPlusMultischema installed, the following features are automatically in place.
 
-The schema plus multischema also works with schema plus foreign keys. If schema plus foreign keys is enabled, the output will look like this:
+### `connection.tables`
 
-```
-create_table 'private.wallets' do
-end
+SchemaPlusMultischema modifies the output of ActiveRecord's `connection.tables` method. If the current search path is different from PostgreSQL's default (`"$user",public`), then each table name is prefixed with its schema.  E.g.
 
-create_table 'public.users' do |t|
-  t.integer :wallet_id, null: false, foreign_key: {references: "private.wallets", name: "fk_public_users_wallet_id", on_update: :no_action, on_delete: :cascade}
-end
-```
+    connection.tables  # => ["first.my_table", "second.my_table"]
+    
+If the current search path is the same as the default, the table names are not prefixed, i.e. the behavior is the same as pure ActiveRecord.
+
+### Schema dump
+
+If the current search path isn't the default, the schema dump (`db/schema.rb`) will include the schema setup, and the table definitions will be prefixed with their schemas.  E.g.
+
+        connection.execute "CREATE SCHEMA IF NOT EXISTS first"
+        connection.execute "CREATE SCHEMA IF NOT EXISTS second"
+        connection.schema_search_path = "first,second"
+        
+        create_table "first.my_table" do ...
+        create_table "second.my_table" do ...
+
+If the current search path is the same as the default, no schema_setup is included and the table names are not prefixed, i.e. the behavior is the same as pure ActiveRecord.
 
 ## History
 
