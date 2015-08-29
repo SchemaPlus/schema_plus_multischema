@@ -49,7 +49,7 @@ Your PostgreSQL database might have multiple schemas, that provide namespaces fo
     connection.execute "CREATE SCHEMA first"
     connection.execute "CREATE SCHEMA second"
 
-ActiveRecord's PostgreSQL connection adapter lets you set PostgreSQL's search_path to choose which schemas to look at:
+ActiveRecord's PostgreSQL connection adapter lets you [set PostgreSQL's search_path](http://apidock.com/rails/ActiveRecord/ConnectionAdapters/PostgreSQLAdapter/schema_search_path%3D) to choose which schemas to look at:
 
     connection.schema_search_path = "first,second"
 
@@ -62,11 +62,11 @@ But without SchemaPlusMultischema, ActiveRecord's introspection doesn't handle t
 
 ## Features
 
-With SchemaPlusMultischema installed, make sure to set your [schema search path to use your schemas](http://apidock.com/rails/ActiveRecord/ConnectionAdapters/PostgreSQLAdapter/schema_search_path%3D). SchemaPlusMultischema features only work if the current search path is different from PostgreSQL's default (```"$user",public```). If schema search path is PostgreSQL's default, then behavior is the same as pure ActiveRecord.
+With SchemaPlusMultischema installed, it activates its features whenever your schema search path differs from PostgreSQL's default (```"$user",public```). If schema search path is PostgreSQL's default, then SchemaPlusMultischema stays out of the way and the behavior is the same as pure ActiveRecord.
 
 ### `connection.tables`
 
-SchemaPlusMultischema modifies the output of ActiveRecord's `connection.tables` method.
+The output of ActiveRecord's `connection.tables` method will have table name prefixed with its schema.  E.g.
 
     connection.tables  # => ["first.my_table", "second.my_table"]
 
