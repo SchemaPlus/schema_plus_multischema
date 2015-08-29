@@ -58,7 +58,7 @@ And ActiveRecord let you use schema names in migrations, such as
     create_table 'first.my_table' do ...
     create_table 'second.my_table' do ...
 
-But without SchemaPlusMultishema, ActiveRecord's introspection doesn't handle them properly.  It *does* find all tables that are in the current search path, but it *doesn't* prefix them with their schema names. The schema dump `schema/dump.rb` doesn't take into account the schemas at all and the dump will be invalid. Futhermore, if there are tables with the same name in different schemas, only 1 of the tables will be dumped.
+But without SchemaPlusMultischema, ActiveRecord's introspection doesn't handle them properly.  It *does* find all tables that are in the current search path, but it *doesn't* prefix them with their schema names. The schema dump `schema/dump.rb` doesn't take into account the schemas at all and the dump will be invalid. Futhermore, if there are tables with the same name in different schemas, only 1 of the tables will be dumped.
 
 ## Features
 
