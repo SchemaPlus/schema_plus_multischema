@@ -6,8 +6,8 @@ require 'schema_plus_multischema/version'
 Gem::Specification.new do |gem|
   gem.name          = "schema_plus_multischema"
   gem.version       = SchemaPlusMultischema::VERSION
-  gem.authors       = ["Stenver Jerkku", "Ronen Barzel"]
-  gem.email         = ["stenver1010@gmail.com", "ronen@barzel.org"]
+  gem.authors       = ["Stenver Jerkku"]
+  gem.email         = ["stenver1010@gmail.com"]
   gem.summary       = %q{Adds support for multiple schemas in activerecord when using Postgres}
   gem.homepage      = "https://github.com/SchemaPlus/schema_plus_multischema"
   gem.license       = "MIT"
