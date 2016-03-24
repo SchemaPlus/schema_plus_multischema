@@ -90,6 +90,7 @@ If you're using the [schema_plus_foreign_keys](https://github.com/SchemaPlus/sch
 
 ## History
 
+* 0.1.1 - Fix to work with postgresql 9.5; upgrade schema_plus_core dependency
 * 0.1.0 - Initial release
 
 ## Development & Testing
