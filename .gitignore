@@ -3,6 +3,7 @@
 /pkg
 /Gemfile.local
 
+.byebug_history
 *.lock
 *.log
 *.sqlite3
