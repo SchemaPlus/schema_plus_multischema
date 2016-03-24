@@ -51,7 +51,7 @@ describe 'Schema dump' do
         end
 
         it 'includes foreign key references with schema prefixes' do
-          expect(dump_schema).to include('foreign_key: {references: "second.dogs", name: "fk_first_owners_dog_id"')
+          expect(dump_schema).to include(':foreign_key=>{:references=>"second.dogs", :name=>"fk_first_owners_dog_id"')
         end
       end
     end
